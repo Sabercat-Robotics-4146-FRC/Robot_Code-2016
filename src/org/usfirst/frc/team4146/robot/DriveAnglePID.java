@@ -2,6 +2,7 @@ package org.usfirst.frc.team4146.robot;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.PIDController;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 /**
  * This class is used for setting the robot's heading angle to a given value using the AHRS GYRO
@@ -11,12 +12,17 @@ import edu.wpi.first.wpilibj.PIDController;
 public class DriveAnglePID implements PIDOutput  {
 	private double delta_rotation;
 	private PIDController turn_controller;
+	private NetworkTable table;
+	private AHRS gyro;
 	/**
 	 * Constructor for making the PID loop for heading angle.
 	 * @param gyro AHRS gyroscope object
 	 */
-	public DriveAnglePID( AHRS gyro ){
-		turn_controller = new PIDController( 0.02, 0.00, 0.00, 0.00, gyro, this );
+	public DriveAnglePID( AHRS gyro, NetworkTable table ){
+		this.table = table;
+		this.gyro = gyro;
+		//double Kp, double Ki, double Kd, double Kf
+		turn_controller = new PIDController( 0.2, 0.00, 0.00, 0.00, gyro, this );
 	    turn_controller.setInputRange(-180.0f,  180.0f);
 	    turn_controller.setOutputRange(-1.0, 1.0);
 	    turn_controller.setAbsoluteTolerance( 0.5f );
@@ -36,6 +42,8 @@ public class DriveAnglePID implements PIDOutput  {
 	 * @param angle double angle to turn robot to.
 	 */
 	public void set_angle( double angle ){
+		table.putNumber( "Angle Actual", gyro.getAngle() );
+		turn_controller.setPID(table.getNumber("Kp", 0.2), table.getNumber("Ki", 0.0), table.getNumber("Kd", 0.0), table.getNumber("Kf", 0.0));
 		turn_controller.setSetpoint( (float) angle );
 	}
 	@Override

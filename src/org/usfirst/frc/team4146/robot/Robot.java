@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 /**
  * Main Robot class used for defining the auto and operator controlled methods
@@ -13,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * @version 8/21/2016
  */
 public class Robot extends SampleRobot{
+	NetworkTable network_table;
     Controller drive_controller; // Driver's controller
     final String defaultAuto = "Default";
     final String customAuto = "My Auto";
@@ -23,6 +25,13 @@ public class Robot extends SampleRobot{
      *	Constructor for Robot will instantiate all subsystems and controllers. 
      */
     public Robot() {
+    	network_table = NetworkTable.getTable("SmartDashboard");
+    	//Debug angle pid
+    	network_table.putNumber( "set angle", 0.0 );
+    	network_table.putNumber( "Kp", 0.2 );
+    	network_table.putNumber( "Ki", 0.0 );
+    	network_table.putNumber( "Kd", 0.0 );
+    	network_table.putNumber( "Kf", 0.0 );
         drive_controller = new Controller( 0 );
         drive = new DriveTrain( drive_controller, this );
         shooter = new Shooter( drive_controller );
@@ -31,10 +40,10 @@ public class Robot extends SampleRobot{
      * Starts the Robot ( for Driver Station and deployment purposes. )
      */
     public void robotInit() {
-        chooser = new SendableChooser();
+        /*chooser = new SendableChooser();
         chooser.addDefault("Default Auto", defaultAuto);
         chooser.addObject("My Auto", customAuto);
-        SmartDashboard.putData("Auto modes", chooser);
+        SmartDashboard.putData("Auto modes", chooser);*/
     }
 
 	/**
@@ -43,7 +52,7 @@ public class Robot extends SampleRobot{
 	 */
     public void autonomous() {
     	
-    	String autoSelected = (String) chooser.getSelected();
+    	/*String autoSelected = (String) chooser.getSelected();
 		System.out.println("Auto selected: " + autoSelected);
     	
     	switch(autoSelected) {
@@ -52,11 +61,11 @@ public class Robot extends SampleRobot{
     	case defaultAuto:
     	default:
             break;
-    	}
+    	}*/
     }
 
     /**
-     * Runs Robot updating all substsyems.
+     * Runs Robot updating all subsystems.
      */
     public void operatorControl() {
     	
@@ -65,7 +74,6 @@ public class Robot extends SampleRobot{
             shooter.update();
             Timer.delay(0.005);		// wait for a motor update time
         }
-        
     }
 
     /**

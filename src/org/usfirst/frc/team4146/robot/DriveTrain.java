@@ -27,22 +27,24 @@ public class DriveTrain {
 	private Encoder right_drive_encoder;
 	private Encoder left_drive_encoder;
 	private Controller drive_controller;
-	private Timer dt;
 	// Arcade drive data
 	private double x_axis;
 	private double y_axis;
-	private static double epsilon = 0.01;
-	private static double lerp_coef = 100.0;
-	
-	//PID
+	private static double speed_coef = 0.5;
+	private ImageTracker tracker;
+	private Robot robot;
 	private DriveAnglePID heading;
 	/**
 	 * Constructor for drive train. Only needs the driver's Controller.
 	 * @param drive_controller Controller that the driver uses
 	 */
 	public DriveTrain( Controller drive_controller, Robot robot ) {
+		this.robot = robot;
+		robot.network_table.putNumber( "st_coef", 0.5 );
+		robot.network_table.putNumber( "st_bias", 0.5 );
+		tracker = new ImageTracker( robot.network_table );
 		gyro = new AHRS( SPI.Port.kMXP );
-		heading = new DriveAnglePID( gyro );
+		heading = new DriveAnglePID( gyro, robot.network_table );
 		// Set driver's controller
 		this.drive_controller = drive_controller;
 		// Instantiate Talons with correct PWM value for 2016 robot
@@ -64,8 +66,6 @@ public class DriveTrain {
 		front_right.setInverted( true );
 		rear_right.setInverted( true );
 		// delta time Timer
-		dt = new Timer();
-		dt.reset();
 	}
 	/**
 	 *	One on the smoothing methods that may be used for a ramp drive style control. Linear interpolation.
@@ -102,22 +102,29 @@ public class DriveTrain {
 		double c = (1-Math.cos( t * Math.PI )) * 0.5;
 		return 	a*(1-c) + b*c;
 	}
+	double motor_compensate( double n ){
+		if ( n > 0.5 || n < -0.5 ){
+			n *= 0.5;
+		}
+		return n;
+		//return -Math.pow( ( robot.network_table.getNumber( "st_coef", 0.5 ) * n ), 2 ) + robot.network_table.getNumber( "st_bias", 0.5 );
+	}
 	/**
 	 *	drivetrain update. Should call in telliop loop.  
 	 */
 	public void update() {
-		dt.reset();
-		dt.start();
-		x_axis = cerp( x_axis, drive_controller.get_left_x_axis(), dt.get()*lerp_coef );
-		y_axis = cerp( y_axis, drive_controller.get_left_y_axis(), dt.get()*lerp_coef );
-		if ( drive_controller.get_left_x_axis() <= epsilon && drive_controller.get_left_x_axis() >= -epsilon){
-			x_axis = 0.0;
+		robot.network_table.putNumber( "imager", tracker.get_x_axis() );
+		if ( drive_controller.get_left_stick_press() ){
+			speed_coef = 1.0;
+		} else {
+			speed_coef = 0.5;
 		}
-		if ( drive_controller.get_left_y_axis() <= epsilon && drive_controller.get_left_y_axis() >= -epsilon){
-			y_axis = 0.0;
-		}
+		x_axis = cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 1.0 );
+		y_axis = cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 1.0 );
 		if ( drive_controller.get_left_trigger() ){
-			x_axis = heading.get_axis();
+			//x_axis = heading.get_axis();
+			double n = robot.network_table.getNumber( "imager", 0.0 );
+			x_axis = motor_compensate( n );
 		}
 		myRobot.arcadeDrive( y_axis, x_axis, true );
 	}
