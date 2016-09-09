@@ -33,18 +33,16 @@ public class DriveTrain {
 	private static double speed_coef = 0.5;
 	private ImageTracker tracker;
 	private Robot robot;
-	private DriveAnglePID heading;
 	/**
 	 * Constructor for drive train. Only needs the driver's Controller.
 	 * @param drive_controller Controller that the driver uses
 	 */
-	public DriveTrain( Controller drive_controller, Robot robot ) {
+	public DriveTrain( Controller drive_controller, EventLoop main_loop, Robot robot ) {
 		this.robot = robot;
 		robot.network_table.putNumber( "st_coef", 0.5 );
 		robot.network_table.putNumber( "st_bias", 0.5 );
 		tracker = new ImageTracker( robot.network_table );
 		gyro = new AHRS( SPI.Port.kMXP );
-		heading = new DriveAnglePID( gyro, robot.network_table );
 		// Set driver's controller
 		this.drive_controller = drive_controller;
 		// Instantiate Talons with correct PWM value for 2016 robot
@@ -66,6 +64,40 @@ public class DriveTrain {
 		front_right.setInverted( true );
 		rear_right.setInverted( true );
 		// delta time Timer
+		
+		// Event registering.
+		// drive_tracker Event is just a strait up loop. No need to trigger. Tracks raspberry pi output.
+		Event drive_tracker = new Event( new attr() {
+			public boolean poll(){
+				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
+				if ( drive_controller.get_left_trigger() ){
+					double n = tracker.get_x_axis();
+					x_axis = motor_compensate( n );
+				}
+				return false;
+			}
+			public void callback(){}
+			public boolean complete(){return true;}
+		});
+		// drive_loop Event is just a strait up loop. No need to trigger. Used for controller -> drive interface
+		Event drive_loop = new Event( new attr(){
+			public boolean poll(){
+				if ( drive_controller.get_left_stick_press() ){
+					speed_coef = 1.0;
+				} else {
+					speed_coef = 0.5;
+				}
+				x_axis = cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 1.0 );
+				y_axis = cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 1.0 );
+				myRobot.arcadeDrive( y_axis, x_axis, true );
+				return false;
+			}
+			public boolean complete(){return true;}
+			public void callback(){}
+		});
+		// Register Events
+		main_loop.on( drive_tracker );
+		main_loop.on( drive_loop );
 	}
 	/**
 	 *	One on the smoothing methods that may be used for a ramp drive style control. Linear interpolation.
@@ -108,24 +140,5 @@ public class DriveTrain {
 		}
 		return n;
 		//return -Math.pow( ( robot.network_table.getNumber( "st_coef", 0.5 ) * n ), 2 ) + robot.network_table.getNumber( "st_bias", 0.5 );
-	}
-	/**
-	 *	drivetrain update. Should call in telliop loop.  
-	 */
-	public void update() {
-		robot.network_table.putNumber( "imager", tracker.get_x_axis() );
-		if ( drive_controller.get_left_stick_press() ){
-			speed_coef = 1.0;
-		} else {
-			speed_coef = 0.5;
-		}
-		x_axis = cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 1.0 );
-		y_axis = cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 1.0 );
-		if ( drive_controller.get_left_trigger() ){
-			//x_axis = heading.get_axis();
-			double n = robot.network_table.getNumber( "imager", 0.0 );
-			x_axis = motor_compensate( n );
-		}
-		myRobot.arcadeDrive( y_axis, x_axis, true );
 	}
 }

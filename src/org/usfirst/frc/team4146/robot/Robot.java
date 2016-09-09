@@ -5,7 +5,7 @@ package org.usfirst.frc.team4146.robot;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+//import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 /**
@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.networktables.NetworkTable;
  * @version 8/21/2016
  */
 public class Robot extends SampleRobot{
+	EventLoop main_event_loop;
 	NetworkTable network_table;
     Controller drive_controller; // Driver's controller
     final String defaultAuto = "Default";
@@ -26,15 +27,10 @@ public class Robot extends SampleRobot{
      */
     public Robot() {
     	network_table = NetworkTable.getTable("SmartDashboard");
-    	//Debug angle pid
-    	network_table.putNumber( "set angle", 0.0 );
-    	network_table.putNumber( "Kp", 0.2 );
-    	network_table.putNumber( "Ki", 0.0 );
-    	network_table.putNumber( "Kd", 0.0 );
-    	network_table.putNumber( "Kf", 0.0 );
+    	main_event_loop = new EventLoop();
         drive_controller = new Controller( 0 );
-        drive = new DriveTrain( drive_controller, this );
-        shooter = new Shooter( drive_controller );
+        drive = new DriveTrain( drive_controller, main_event_loop, this );
+        shooter = new Shooter( drive_controller, main_event_loop );
     }
     /**
      * Starts the Robot ( for Driver Station and deployment purposes. )
@@ -68,10 +64,9 @@ public class Robot extends SampleRobot{
      * Runs Robot updating all subsystems.
      */
     public void operatorControl() {
-    	
-        while (isOperatorControl() && isEnabled()) {
-            drive.update();
-            shooter.update();
+    	(new Thread( main_event_loop )).start();
+        while ( isOperatorControl() && isEnabled() ) {
+        	
             Timer.delay(0.005);		// wait for a motor update time
         }
     }

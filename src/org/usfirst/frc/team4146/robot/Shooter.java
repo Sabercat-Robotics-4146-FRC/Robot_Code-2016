@@ -18,15 +18,22 @@ public class Shooter {
 	private DigitalInput arm_up;
 	private DigitalInput arm_down;
 	private Controller driver;
-	private boolean raise_arm;
-	private boolean lower_arm;
-	private boolean shoot;
 	private Encoder flywheel_encoder;
+	// Main Events
+	Event shoot;
+	Event eject;
+	// Helper Events
+	Event lower_arm;
+	Event stop_arm;
+	Event raise_arm;
+	Event spin_wheel;
+	Event stop_wheel;
+	Event reverse_wheel;
 	/**
 	 * Constructor for shooter. 
 	 * @param driver Controller. The contorller of the main driver. 
 	 */
-	public Shooter( Controller driver ){
+	public Shooter( Controller driver, EventLoop main_loop ){
 		flywheel_encoder = new Encoder(4,5, true);
 		this.driver = driver;
 		shooter_arm_motor    = new Talon( 4 );
@@ -39,19 +46,88 @@ public class Shooter {
 		
 		arm_up = new DigitalInput( 7 );
 		arm_down = new DigitalInput( 8 );
-	}
-	/**
-	 * Lifts the shooter pivot arm up to the binary limit switch.
-	 * 
-	 */
-	public void lift_arm(){
-		raise_arm = true;
-	}
-	/**
-	 * Drops the shooter arm down to the binary limit switch. 
-	 */
-	public void drop_arm(){
-		lower_arm = true;
+		/* Main Events */
+		shoot = new Event ( new attr() {
+			public void callback(){}
+			public boolean poll(){ 
+				return driver.get_right_trigger(); 
+			}
+			public boolean complete(){ return !driver.get_right_trigger(); }
+		});
+		eject = new Event( new attr(){
+			public void callback(){}
+			public boolean poll() { return driver.get_left_bumper(); }
+			public boolean complete(){ return !driver.get_left_bumper(); }
+		});
+		/* Helper Events */
+		stop_arm = new Event( new attr(){
+			public void callback(){
+				shooter_arm_motor.set( 0.0 );
+			}
+			public boolean poll(){ return true; }
+			public boolean complete(){ return true; }
+		});
+		lower_arm = new Event( new attr() {
+			public boolean poll(){ return true; }
+			public void callback(){
+				shooter_arm_motor.set( -1.0 );
+			}
+			public boolean complete(){
+				return arm_down.get();
+			}
+		});
+		raise_arm = new Event( new attr(){
+			public void callback(){
+				shooter_arm_motor.set( 1.0 );
+			}
+			public boolean poll(){ return true; }
+			public boolean complete(){
+				return arm_up.get();
+			}
+		});
+		spin_wheel = new Event( new attr(){
+			public void callback(){
+				spin_flywheel();
+			}
+			public boolean poll(){ return true; }
+			public boolean complete(){
+				if ( flywheel_encoder.getRate() >= 19000 ) {
+					flywheel_encoder.reset();
+					return true;
+				} else {
+					return false;
+				}
+			}
+		});
+		stop_wheel = new Event( new attr() {
+			public void callback(){
+				stop_flywheel();
+			}
+			public boolean poll(){ return true; }
+			public boolean complete(){ return true; }
+		});
+		reverse_wheel = new Event( new attr() {
+			public void callback(){
+				reverse_flywheel();
+			}
+			public boolean poll(){ return true; }
+			public boolean complete(){ return true; }
+		});
+		/* Event Chains */
+		shoot
+		.then( raise_arm )
+		.then( stop_arm )
+		.then( spin_wheel )
+		.then( lower_arm )
+		.then( stop_wheel );
+		
+		eject
+		.then( reverse_wheel )
+		.then( raise_arm )
+		.then( stop_wheel );
+		
+		main_loop.on( eject );
+		main_loop.on( shoot );
 	}
 	/**
 	 * Stops all shooter motors. Best practice: bind to a button when testing.
@@ -95,94 +171,5 @@ public class Shooter {
 	public void reverse_flywheel( double speed ){
 		outer_flywheel_motor.set( -speed );
 		inner_flywheel_motor.set( -speed );
-	}
-	/**
-	 * Puts the pivoting fly wheel arm into in-take position. 
-	 */
-	public void arm_intake_position(){
-		lift_arm();
-		Timer.delay( 0.5 );
-		// Lower arm about half way.
-		shooter_arm_motor.set( -0.25 );
-		Timer.delay( 0.2 );
-		shooter_arm_motor.set( 0.0 );
-	}
-	/**
-	 * Puts the shooter mechanism into in-take position or in-take mode. ( pivot arm middle, fly wheel spinning ) 
-	 */
-	public void intake_position(){
-		arm_intake_position();
-		spin_flywheel( 0.35 );
-	}
-	/**
-	 * Ejects the ball from the robot.
-	 */
-	public void eject(){
-		lift_arm();
-		reverse_flywheel();
-	}
-	/**
-	 * Shoots the ball. ( Untested )
-	 */
-	public void shoot(){
-		shoot = true;
-	}
-	/**
-	 * Update function should be called in main loop.
-	 */
-	public void update(){
-		//System.out.println( wheel.get_output() );
-		if ( driver.get_a_button() ){
-			//drop_arm();
-			lift_arm();
-		}
-		if ( driver.get_x_button() ){
-			intake_position();
-		}
-		if ( driver.get_y_button() ){
-			abort_motors();
-		}
-		if( driver.get_b_button() ){
-			//spin_flywheel();
-			drop_arm();
-		}
-		if( driver.get_right_trigger() ){
-			shoot();
-		}
-		if ( driver.get_left_bumper() ){
-			eject();
-		}
-		if ( driver.get_right_bumper() ){
-			reverse_flywheel();
-		}
-		if( raise_arm ){
-			if( ! arm_up.get() ){
-				shooter_arm_motor.set( 1.0 );
-			}else{
-				shooter_arm_motor.set( 0.0 );
-				raise_arm = false;
-			}
-		}
-		if( lower_arm ){
-			if( ! arm_down.get() ){
-				shooter_arm_motor.set(-1.0);
-			}else{
-				shooter_arm_motor.set(0.0);
-				lower_arm = false;
-				stop_flywheel();
-			}
-		}
-		if ( shoot ){
-			if( ! arm_up.get() ){
-				shooter_arm_motor.set( 1.0 );
-				reverse_flywheel();
-			}else{
-				shooter_arm_motor.set( 0.1 );
-				spin_flywheel();
-				Timer.delay( 2.0 );
-				drop_arm();
-				shoot = false;
-			}
-		}
 	}
 }
