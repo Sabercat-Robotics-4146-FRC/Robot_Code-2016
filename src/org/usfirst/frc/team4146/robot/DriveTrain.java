@@ -69,8 +69,8 @@ public class DriveTrain {
 		// drive_tracker Event is just a strait up loop. No need to trigger. Tracks raspberry pi output.
 		Event drive_tracker = new Event( new attr() {
 			public boolean poll(){
-				x_axis = cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 1.0 );
-				y_axis = cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 1.0 );
+				x_axis = Utils.cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, main_loop.dt );
+				y_axis = Utils.cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, main_loop.dt );
 				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
 				if ( drive_controller.get_left_trigger() ){
 					//double n = tracker.get_x_axis();
@@ -100,41 +100,6 @@ public class DriveTrain {
 		// Register Events
 		main_loop.on( drive_tracker );
 		main_loop.on( drive_loop );
-	}
-	/**
-	 *	One on the smoothing methods that may be used for a ramp drive style control. Linear interpolation.
-	 *	Usage: double a = lerp( a, 15, dt ) // getting a to get to value 15
-	 *	@param a double current value of variable being set.
-	 *	@param b double value that a is linearly interpolating to.
-	 *	@param t double change in time
-	 *	@return next value of a
-	 */
-	static double lerp( double a, double b, double t ){
-		return a + (b - a) * t;
-	}
-	/**
-	 *	One on the smoothing methods that may be used for a ramp drive style control. Linear interpolation.
-	 *	A separate implementation of lerp. Very different!
-	 *	Usage: double a = lerp2( a, 15, dt ) // getting a to get to value 15
-	 *	@param a double current value of variable being set.
-	 *	@param b double value that a is linearly interpolating to.
-	 *	@param t double change in time
-	 *	@return next value of a
-	 */
-	static double lerp2( double a, double b, double t ){
-		return ( 1.0 - t ) * a + t*b;
-	}
-	/**
-	 *	One on the smoothing methods that may be used for a ramp drive style control. Cosine interpolation.
-	 *	Usage: double a = cerp( a, 15, dt ) // getting a to get to value 15
-	 *	@param a double current value of variable being set.
-	 *	@param b double value that a is linearly interpolating to.
-	 *	@param t double change in time
-	 *	@return next value of a
-	 */
-	static double cerp( double a, double b, double t ){
-		double c = (1-Math.cos( t * Math.PI )) * 0.5;
-		return 	a*(1-c) + b*c;
 	}
 	double motor_compensate( double n ){
 		if ( n > 0.5 || n < -0.5 ){

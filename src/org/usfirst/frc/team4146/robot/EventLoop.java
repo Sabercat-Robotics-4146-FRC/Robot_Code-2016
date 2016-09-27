@@ -14,6 +14,7 @@ class EventLoop implements Runnable {
 	private ArrayList<Event> stack;
 	private ArrayList<Event> completeStack;
 	private ArrayList<Event> persistentStack;
+	public double dt;
 	// Just a good old constructor.. Nothing to see here.
 	public EventLoop() {
 		stack = new ArrayList<Event>();
@@ -29,7 +30,9 @@ class EventLoop implements Runnable {
 	}
 	@Override
 	public void run(){
+		long startTime;
 		while ( true ){
+			startTime = System.nanoTime();
 			for ( int i = 0; i < persistentStack.size(); i++ ){
 				Event e = persistentStack.get( i );
 				if ( e.poll() ){
@@ -56,6 +59,8 @@ class EventLoop implements Runnable {
 					completeStack.remove( i );
 				}
 			}
+			// Get the time it takes to complete the event loop. Nanosecond to second conversion.
+			dt = (double)( System.nanoTime() - startTime ) / 1e9;
 		}
 	}
 }

@@ -15,6 +15,7 @@ public class PID {
 	private double derivative;
 	private signal functions;
 	private double output;
+	private double ramped_setpoint;
 	public PID ( signal functions ){
 		this.functions = functions;
 		integral = 0;
@@ -29,7 +30,8 @@ public class PID {
 		this.Kd = d;
 	}
 	public void update( double dt ){
-		error = setpoint - functions.getValue();
+		ramped_setpoint = Utils.lerp( setpoint, ramped_setpoint, dt );
+		error = ramped_setpoint - functions.getValue();
 		integral += ( Ki * error * dt );
 		derivative = ( prevError - error ) / dt;
 		prevError = error;
