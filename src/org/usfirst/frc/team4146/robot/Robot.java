@@ -2,6 +2,9 @@
 package org.usfirst.frc.team4146.robot;
 
 
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -17,11 +20,13 @@ public class Robot extends SampleRobot{
 	EventLoop main_event_loop;
 	NetworkTable network_table;
     Controller drive_controller; // Driver's controller
+    Controller arm_controller;
     final String defaultAuto = "Default";
     final String customAuto = "My Auto";
     SendableChooser chooser;
     DriveTrain drive;
     Shooter shooter;
+    LifterArm lifter_arm;
     /**
      *	Constructor for Robot will instantiate all subsystems and controllers. 
      */
@@ -29,6 +34,8 @@ public class Robot extends SampleRobot{
     	network_table = NetworkTable.getTable("SmartDashboard");
     	main_event_loop = new EventLoop();
         drive_controller = new Controller( 0 );
+        arm_controller = new Controller( 1 );
+       // lifter_arm = new LifterArm( arm_controller, main_event_loop );
         drive = new DriveTrain( drive_controller, main_event_loop, this );
         shooter = new Shooter( drive_controller, main_event_loop );
     }
@@ -59,15 +66,34 @@ public class Robot extends SampleRobot{
             break;
     	}*/
     }
-
+    AHRS gyro;
+    public PID drive_angle;
     /**
      * Runs Robot updating all subsystems.
      */
     public void operatorControl() {
+    	drive_angle = new PID( new signal(){
+    		public double getValue() {
+    			double a = gyro.getAngle();
+    			double b = Math.abs(a) % 360;
+    			if ( b < 180 ) {
+    				return 180 - ( Math.abs(a) % 180);
+    			} else {
+    				return ( a % 180 );
+    			}
+    		}
+    	} );
+    	drive_angle.set_pid( 0.05, 0.0000000001, 0.0000001 );
+    	drive_angle.set_setpoint( 0.0 );
+    	gyro = new AHRS( SPI.Port.kMXP );
     	(new Thread( main_event_loop )).start();
+    	long startTime;    
+    	double dt = 1e-3;
         while ( isOperatorControl() && isEnabled() ) {
-        	
+        	startTime = System.nanoTime();   
+        	drive_angle.update( dt );
             Timer.delay(0.005);		// wait for a motor update time
+            dt = (double)( System.nanoTime() - startTime ) / 1e9;
         }
     }
 

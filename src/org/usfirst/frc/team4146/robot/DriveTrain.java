@@ -23,7 +23,7 @@ public class DriveTrain {
 	private Talon rear_left;
 	private Talon front_right;
 	private Talon rear_right;
-	private RobotDrive myRobot;
+	public RobotDrive myRobot;
 	private Encoder right_drive_encoder;
 	private Encoder left_drive_encoder;
 	private Controller drive_controller;
@@ -69,10 +69,14 @@ public class DriveTrain {
 		// drive_tracker Event is just a strait up loop. No need to trigger. Tracks raspberry pi output.
 		Event drive_tracker = new Event( new attr() {
 			public boolean poll(){
+				x_axis = cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 1.0 );
+				y_axis = cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 1.0 );
 				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
 				if ( drive_controller.get_left_trigger() ){
-					double n = tracker.get_x_axis();
-					x_axis = motor_compensate( n );
+					//double n = tracker.get_x_axis();
+					//x_axis = motor_compensate( n );
+					x_axis = robot.drive_angle.get();
+					System.out.println( x_axis );
 				}
 				return false;
 			}
@@ -87,8 +91,6 @@ public class DriveTrain {
 				} else {
 					speed_coef = 0.5;
 				}
-				x_axis = cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 1.0 );
-				y_axis = cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 1.0 );
 				myRobot.arcadeDrive( y_axis, x_axis, true );
 				return false;
 			}
