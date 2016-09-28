@@ -29,14 +29,14 @@ public class PID {
 		this.Ki = i;
 		this.Kd = d;
 	}
-	public void update( double dt ){
-		ramped_setpoint = Utils.lerp( setpoint, ramped_setpoint, dt );
-		error = ramped_setpoint - functions.getValue();
+	public void update( double dt ) {
+		//ramped_setpoint = 0.5 * ( setpoint - ramped_setpoint );
+		error = setpoint - functions.getValue();
 		integral += ( Ki * error * dt );
 		derivative = ( prevError - error ) / dt;
 		prevError = error;
 		output = ( Kp * error ) + ( integral ) + ( Kd * derivative );
-		System.out.println( integral );
+		System.out.println( get_angle() );
 	}
 	public double get_angle(){
 		return functions.getValue();
