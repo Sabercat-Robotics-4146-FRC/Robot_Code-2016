@@ -14,7 +14,7 @@
 
 ### Motivation
 
-The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. It provides methods for accessing the buttons of a *Dual Action Logitech* controller. :controller:
+The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. It provides methods for accessing the buttons of a *Dual Action Logitech* controller.
 
  ![Controller](./img/controller.png)
 
@@ -28,7 +28,7 @@ The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. 
 
 **Note:** When referencing *boolean state*, the state is `true` when the button is down, and `false` when the button is up.
 
-```public boolean get_x_button()``` returns the *boolean state* of the X button. (Button 1 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L43)
+`public boolean get_x_button()` returns the *boolean state* of the X button. (Button 1 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L43)
 
 `public boolean get_a_button()` returns the *boolean state* of the A button. (Button 2 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L50)
 
@@ -100,7 +100,7 @@ Firstly, We need to introduce the `Event`: the workhorse of the `EventLoop`. An 
 
 ### Motivation
 
-Provides an efficient, high level abstraction for system design. See `EventLoop`
+Provides an efficient, high level abstraction for system design. See `EventLoop`.
 
 ### Constructor
 
