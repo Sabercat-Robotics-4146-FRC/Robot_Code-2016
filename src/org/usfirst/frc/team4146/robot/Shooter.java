@@ -46,19 +46,9 @@ public class Shooter {
 		
 		arm_up = new DigitalInput( 7 );
 		arm_down = new DigitalInput( 8 );
-		/* Main Events */
-		shoot = new Event ( new attr() {
-			public void callback(){}
-			public boolean poll(){ 
-				return driver.get_right_trigger(); 
-			}
-			public boolean complete(){ return !driver.get_right_trigger(); }
-		});
-		eject = new Event( new attr(){
-			public void callback(){}
-			public boolean poll() { return driver.get_left_bumper(); }
-			public boolean complete(){ return !driver.get_left_bumper(); }
-		});
+		/* Controller bindings */
+		shoot = driver.bind( Controller.right_trigger );
+		eject = driver.bind( Controller.left_bumper );
 		/* Helper Events */
 		stop_arm = new Event( new attr(){
 			public void callback(){

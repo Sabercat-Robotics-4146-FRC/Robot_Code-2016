@@ -28,6 +28,20 @@ class EventLoop implements Runnable {
 	public void on( Event e ){
 		persistentStack.add( e );
 	}
+	/**
+	 * Adds Event e to the normal stack. This Event will die when triggered.
+	 * @param Event e to be polled once. 
+	 */
+	public void once( Event e ){
+		stack.add( e );
+	}
+	/**
+	 * Gets the delta (change in) time for the event loop to complete.
+	 * @return double dt change in time.
+	 */
+	public double get_dt(){
+		return dt;
+	}
 	@Override
 	public void run(){
 		long startTime;

@@ -11,18 +11,18 @@ import edu.wpi.first.wpilibj.Joystick;
 public class Controller {
 	Joystick joy;
 	// Define buttons
-	private static final int X_button          = 1;
-	private static final int A_button          = 2;
-	private static final int B_button          = 3;
-	private static final int Y_button          = 4;
-	private static final int left_bumper       = 5;
-	private static final int right_bumper      = 6;
-	private static final int left_trigger      = 7;
-	private static final int right_trigger     = 8;
-	private static final int back_button       = 9;
-	private static final int start_button      = 10;
-	private static final int left_stick_press  = 11;
-	private static final int right_stick_press = 12;
+	public static final int X_button          = 1;
+	public static final int A_button          = 2;
+	public static final int B_button          = 3;
+	public static final int Y_button          = 4;
+	public static final int left_bumper       = 5;
+	public static final int right_bumper      = 6;
+	public static final int left_trigger      = 7;
+	public static final int right_trigger     = 8;
+	public static final int back_button       = 9;
+	public static final int start_button      = 10;
+	public static final int left_stick_press  = 11;
+	public static final int right_stick_press = 12;
 	// Define axes (pl. axis)
 	private static final int left_x_axis  = 0;
 	private static final int left_y_axis  = 1;
@@ -169,5 +169,13 @@ public class Controller {
 	 */
 	public Joystick get_joystick( ){
 		return joy;
+	}
+	public Event bind( int button ){
+		Event press = new Event( new attr() {
+			public boolean poll(){ return joy.getRawButton( button ); }
+			public void callback(){}
+			public boolean complete(){ return !joy.getRawButton( button ); }
+		});
+		return press;
 	}
 }

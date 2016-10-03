@@ -22,7 +22,7 @@ public class Vector2d {
 	 *	Gets the normal of the vector.
 	 *	@return vector magnitude 
 	 */
-	public double norm() {
+	public double mag() {
 		return Math.sqrt( Math.pow( this.x, 2 ) + Math.pow( this.y, 2 ) );
 	}
 }
