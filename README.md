@@ -14,7 +14,7 @@
 
 ### Motivation
 
-The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. It provides methods for accessing the buttons of a *Dual Action Logitech* controller. :controller:
+The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. It provides methods for accessing the buttons of a *Dual Action Logitech* controller.
 
  ![Controller](./img/controller.png)
 
