@@ -27,7 +27,7 @@ The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. 
 ### Methods
 
 **Note:** When referencing *boolean state*, the state is `true` when the button is down, and `false` when the button is up.
-===spoiler:Methods
+
 ```public boolean get_x_button()``` returns the *boolean state* of the X button. (Button 1 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L43)
 
 `public boolean get_a_button()` returns the *boolean state* of the A button. (Button 2 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L50)
@@ -65,7 +65,7 @@ The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. 
 `public Vector2d get_left_axis()` returns a `Vector2d` (two dimensional vector) containing the axes of the right stick. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L162)
 
 `public Joystick get_joystick()` returns the `Joystick` object that the `Controller` class wraps around. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L170)
-===endspoiler
+
 ----------------------------
 
 ## Event Loop
