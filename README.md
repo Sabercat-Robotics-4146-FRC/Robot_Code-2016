@@ -100,7 +100,7 @@ Firstly, We need to introduce the `Event`: the workhorse of the `EventLoop`. An 
 
 ### Motivation
 
-Provides an efficient, high level abstraction for system design. See `EventLoop`
+Provides an efficient, high level abstraction for system design. See `EventLoop`.
 
 ### Constructor
 
