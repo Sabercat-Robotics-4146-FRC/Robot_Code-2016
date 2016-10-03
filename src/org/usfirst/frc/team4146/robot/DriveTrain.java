@@ -69,14 +69,14 @@ public class DriveTrain {
 		// drive_tracker Event is just a strait up loop. No need to trigger. Tracks raspberry pi output.
 		Event drive_tracker = new Event( new attr() {
 			public boolean poll(){
-				x_axis = Utils.cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, main_loop.dt );
-				y_axis = Utils.cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, main_loop.dt );
+				x_axis = Utils.cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 100*main_loop.dt );
+				y_axis = Utils.cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 100*main_loop.dt );
 				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
 				if ( drive_controller.get_left_trigger() ){
 					//double n = tracker.get_x_axis();
 					//x_axis = motor_compensate( n );
 					x_axis = robot.drive_angle.get();
-					System.out.println( x_axis );
+					//System.out.println( x_axis );
 				}
 				return false;
 			}

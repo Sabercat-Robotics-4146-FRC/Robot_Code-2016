@@ -75,15 +75,19 @@ public class Robot extends SampleRobot{
     	drive_angle = new PID( new signal(){
     		public double getValue() {
     			double a = gyro.getAngle();
-    			double b = Math.abs(a) % 360;
-    			if ( b < 180 ) {
-    				return 180 - ( Math.abs(a) % 180);
-    			} else {
-    				return ( a % 180 );
+    			a = Math.abs( a );
+    			while ( a >= 360 ) {
+    				a -= 360;
     			}
+    			double b = Math.abs(a) % 360;
+    			if ( a > 180 ) {
+    				a = -1 * ( 180 - ( a - 180 ) );
+    			}
+    			return a;
     		}
     	} );
-    	drive_angle.set_pid( 0.05, 0.0000000001, 0.0000001 );
+    	drive_angle.set_pid( 0.01, 0.00000000001, 0.0000001 );
+    	//drive_angle.set_pid( 0.01, 0.00000000001, 0.0000001 );
     	drive_angle.set_setpoint( 0.0 );
     	gyro = new AHRS( SPI.Port.kMXP );
     	(new Thread( main_event_loop )).start();
