@@ -4,9 +4,21 @@
 
 ------------
 
+## Features
+
+- Asynchronous Event Loop.
+- Intuitive controller wrapper and bindings.
+- Custom PID Loop.
+- Computer Vision Support.
+
+ ## Planned
+
+- [ ] Auto-tweaking PID.
+- [ ] High level sensor feedback abstractions.
+- [ ] Event loop meta.
+- [ ] High level autonomous abstractions.
 
 
-[TOC]
 
 ------------------
 
@@ -16,7 +28,7 @@
 
 The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. It provides methods for accessing the buttons of a *Dual Action Logitech* controller.
 
- ![Controller](./img/controller.png)
+ <p align="center">![Controller](./img/controller.png) </p>
 
 *Figure 1-1*
 
@@ -28,7 +40,7 @@ The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. 
 
 **Note:** When referencing *boolean state*, the state is `true` when the button is down, and `false` when the button is up.
 
-`public boolean get_x_button()` returns the *boolean state* of the X button. (Button 1 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L43)
+```public boolean get_x_button()``` returns the *boolean state* of the X button. (Button 1 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L43)
 
 `public boolean get_a_button()` returns the *boolean state* of the A button. (Button 2 in 1-1) [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L50)
 
@@ -66,6 +78,8 @@ The `controller` class is a human-oriented wrapper of the WPI `Joystick` class. 
 
 `public Joystick get_joystick()` returns the `Joystick` object that the `Controller` class wraps around. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Controller.java#L170)
 
+`public Event bind( int button )` returns an `Event` which is triggered when the parameterized button, is presses. The `Event` is then completed when the button is released. This means that the `EventLoop` will only receive one of this event's chains. This is a best-practice method of binding buttons. [code]()
+
 ----------------------------
 
 ## Event Loop
@@ -86,7 +100,7 @@ Firstly, We need to introduce the `Event`: the workhorse of the `EventLoop`. An 
 
 ### Constructor
 
- `EventLoop` (extends Runnable) should be deployed in a separate thread. `(new Thread( main_event_loop )).start();` [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/EventLoop.java#L19)
+ `EventLoop` (extends Runnable) should be deployed in a separate thread. `(new Thread( main_event_loop )).start();` The `EventLoop` also needs to have the `Event`s that it handles to be registered under itself. If you have an `Event e`, then the proper syntax for registering this event to `EventLoop main_event_loop` is as follows: `main_event_loop.on( e );` [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/EventLoop.java#L19)
 
 ### Methods
 
@@ -100,7 +114,7 @@ Firstly, We need to introduce the `Event`: the workhorse of the `EventLoop`. An 
 
 ### Motivation
 
-Provides an efficient, high level abstraction for system design. See `EventLoop`.
+Provides an efficient, high level abstraction for system design. See `EventLoop`
 
 ### Constructor
 
@@ -119,5 +133,115 @@ Provides an efficient, high level abstraction for system design. See `EventLoop`
 `public Event clone()` Spawns an *evil* clone of the event. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/Event.java#L32)
 
 ---------------------------
+
+## attr (interface)
+
+### Motivation
+
+The `attr` interface allows functions to be passes as an argument for the `Event` constructor. This allows you to define the `poll`, `callback`, and `complete` functions on the fly when constructing new `Event`s.
+
+### Constructor
+
+For syntactic glory, I tend to just construct an `Event`'s `attr` in the `Event`'s constructor. This just saves space and is easier to read. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/attr.java#L7)
+
+``` java 
+Event e = new Event( new attr() {
+	public boolean poll(){
+    	// Check to see if the event is happening.
+    	return /*weather the event is happening*/ false;
+	} 
+    public void callback(){
+    	// Define what should happen when the event is triggered.
+    }
+    public boolean complete(){
+    	// Check weather the event's completion criteria have been met.
+    	return false;
+    }
+});
+```
+
+You can also define the `Event`'s attribute before constructing the event. 
+
+``` java 
+attr attribute = new attr() {
+	public boolean poll(){
+    	// Check to see if the event is happening.
+    	return /*weather the event is happening*/ false;
+	} 
+    public void callback(){
+    	// Define what should happen when the event is triggered.
+    }
+    public boolean complete(){
+    	// Check weather the event's completion criteria have been met.
+    	return false;
+    }
+}
+Event e = new Event( attribute );
+```
+
+### Methods
+
+`boolean poll()` defines the poll function of an object. When this function returns `true`, the event will trigger and execute the callback function. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/attr.java#L8)
+
+`void callback()` defines the behavior of the event when it is triggered. When the poll function returns `true`, this function will be called. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/attr.java#L9)
+
+`boolean complete()` defines the completion criteria for the given event. This will be pushed to the event `stack` when an event is polled and the callback is called. The callback will cease to be called when this function returns `true`. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/attr.java#L10)
+
+----------------------------
+
+##  AsyncLoop
+
+### Motivation
+
+The `AsyncLoop` class is an extension of the `Event` class. It is used for utilizing the `EventLoop` as an *"asynchronous"* while loop. The class allows you to register functions to execute as an `Event` in the `EventLoop`. 
+
+### Constructor
+
+This is a cut and dry object declaration with a `function` argument. 
+
+``` java 
+AsyncLoop loop = new AsyncLoop( new function() {
+	public static void fn() {
+      // Do something each itteration of the EventLoop
+	}
+});
+main_event_loop.on( loop );
+```
+
+ [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/AsyncLoop.java#L5)
+
+### Methods
+
+All of the `Event` methods apply to this class.
+
+-----------------
+
+## function (interface)
+
+### Motivation
+
+This interface is used as a general purpose `void` functions for constructing objects with custom function behavior. It is currently used in `AsyncLoop`s, but are purposely vague and versatile.  
+
+### Constructor
+
+The `function` interface has a painless construction. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/function.java#L3)
+
+``` java 
+function f = new function() {
+	public void fn(){
+    	// Do stuff.
+	}
+};
+/* If you want to use it in an AsyncLoop, */
+AsyncLoop loop = new AsyncLoop( f );
+```
+
+### Methods
+
+The `function` interface only has one method to be declared,
+
+`public void fn()` is the function that will run when `function_instance_name.fn();` is called. [code](https://github.com/Sabercat-Robotics-4146-FRC/Robot_Code-2016/blob/master/src/org/usfirst/frc/team4146/robot/function.java#L4)
+
+-------------------
 
 More documentation to come...
