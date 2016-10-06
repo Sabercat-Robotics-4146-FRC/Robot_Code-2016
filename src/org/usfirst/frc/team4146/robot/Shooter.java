@@ -19,9 +19,11 @@ public class Shooter {
 	private DigitalInput arm_down;
 	private Controller driver;
 	private Encoder flywheel_encoder;
+	private static double wheel_intake = 100;
 	// Main Events
 	Event shoot;
 	Event eject;
+	Event pick_up;
 	// Helper Events
 	Event lower_arm;
 	Event stop_arm;
@@ -29,6 +31,7 @@ public class Shooter {
 	Event spin_wheel;
 	Event stop_wheel;
 	Event reverse_wheel;
+	Event intake;
 	/**
 	 * Constructor for shooter. 
 	 * @param driver Controller. The contorller of the main driver. 
@@ -49,6 +52,7 @@ public class Shooter {
 		/* Controller bindings */
 		shoot = driver.bind( Controller.right_trigger );
 		eject = driver.bind( Controller.left_bumper );
+		pick_up = driver.bind( Controller.right_bumper );
 		/* Helper Events */
 		stop_arm = new Event( new attr(){
 			public void callback(){
@@ -103,12 +107,28 @@ public class Shooter {
 			public boolean poll(){ return true; }
 			public boolean complete(){ return true; }
 		});
+		Timer t = new Timer();
+		intake = new Event( new attr(){
+			public boolean poll(){ t.reset(); return true; }
+			public void callback(){
+				spin_flywheel();
+			}
+			public boolean complete(){
+				if ( t.get() >= 0.5 && flywheel_encoder.getRate() < wheel_intake ) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		} );
+		
 		/* Event Chains */
 		shoot
 		.then( raise_arm )
 		.then( stop_arm )
 		.then( spin_wheel )
 		.then( lower_arm )
+		.then( stop_arm )
 		.then( stop_wheel );
 		
 		eject
@@ -116,8 +136,12 @@ public class Shooter {
 		.then( raise_arm )
 		.then( stop_wheel );
 		
+		pick_up
+		.then( intake );
+		
 		main_loop.on( eject );
 		main_loop.on( shoot );
+		main_loop.on( pick_up );
 	}
 	/**
 	 * Stops all shooter motors. Best practice: bind to a button when testing.

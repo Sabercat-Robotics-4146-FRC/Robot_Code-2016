@@ -67,8 +67,9 @@ public class DriveTrain {
 		
 		AsyncLoop drive_tracker = new AsyncLoop( new function() {
 			public void fn(){
-				x_axis = Utils.cerp( x_axis, drive_controller.get_right_x_axis() * speed_coef, 100*main_loop.dt );
-				y_axis = Utils.cerp( y_axis, drive_controller.get_left_y_axis() * speed_coef, 100*main_loop.dt );
+				x_axis = tolerate( drive_controller.get_right_x_axis() * speed_coef, 0.1 );
+				y_axis = tolerate( drive_controller.get_left_y_axis() * speed_coef, 0.1 );
+				
 				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
 				if ( drive_controller.get_left_trigger() ){
 					//double n = tracker.get_x_axis();
@@ -93,6 +94,14 @@ public class DriveTrain {
 		main_loop.on( drive_tracker );
 		main_loop.on( drive_loop );
 	}
+	static double tolerate( double x, double tolerance ){
+		if ( x >= tolerance && x <= -tolerance ) {
+			return x;
+		} else {
+			return 0;
+		}
+	}
+	
 	double motor_compensate( double n ){
 		if ( n > 0.5 || n < -0.5 ){
 			n *= 0.5;

@@ -35,6 +35,26 @@ public class Robot extends SampleRobot{
     	main_event_loop = new EventLoop();
         drive_controller = new Controller( 0 );
         arm_controller = new Controller( 1 );
+        Event drive_start = drive_controller.bind( Controller.start_button );
+        Event arm_start = arm_controller.bind( Controller.start_button );
+        drive_start.then( new Event( new attr() {
+        	public boolean poll(){
+        		System.out.println( "Driver Controller." );
+        		return true;
+        	}
+        	public void callback(){}
+        	public boolean complete(){ return true; }
+        }));
+        arm_start.then( new Event( new attr() {
+        	public boolean poll(){
+        		System.out.println( "Arm Controller." );
+        		return true;
+        	}
+        	public void callback(){}
+        	public boolean complete(){ return true; }
+        }));
+        main_event_loop.on( drive_start );
+        main_event_loop.on( arm_start );
        // lifter_arm = new LifterArm( arm_controller, main_event_loop );
         drive = new DriveTrain( drive_controller, main_event_loop, this );
         shooter = new Shooter( drive_controller, main_event_loop );
