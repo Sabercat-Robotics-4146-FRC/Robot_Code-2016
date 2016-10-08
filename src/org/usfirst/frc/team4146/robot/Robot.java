@@ -74,6 +74,12 @@ public class Robot extends SampleRobot{
 	 * ( Not implemented yet. )
 	 */
     public void autonomous() {
+    	Event drive_forward = drive.drive_strait( 5.0 );
+    	Event turn_left = drive.turn( 90.0 );
+    	
+    	drive_forward.then( turn_left );
+    	
+    	main_event_loop.on( drive_forward );
     	
     	/*String autoSelected = (String) chooser.getSelected();
 		System.out.println("Auto selected: " + autoSelected);

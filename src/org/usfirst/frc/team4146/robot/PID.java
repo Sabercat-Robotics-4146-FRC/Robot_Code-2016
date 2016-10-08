@@ -16,6 +16,10 @@ public class PID {
 	private signal functions;
 	private double output;
 	private double ramped_setpoint;
+	
+	private boolean has_const;
+	private double constant;
+	
 	public PID ( signal functions ){
 		this.functions = functions;
 		integral = 0;
@@ -29,6 +33,10 @@ public class PID {
 		this.Ki = i;
 		this.Kd = d;
 	}
+	public void add_const( double c ){
+		this.has_const = true;
+		this.constant = c;
+	}
 	public void update( double dt ) {
 		//ramped_setpoint = 0.5 * ( setpoint - ramped_setpoint );
 		error = setpoint - functions.getValue();
@@ -36,12 +44,16 @@ public class PID {
 		derivative = ( prevError - error ) / dt;
 		prevError = error;
 		output = ( Kp * error ) + ( integral ) + ( Kd * derivative );
-		System.out.println( get_angle() );
+		//System.out.println( get_angle() );
 	}
 	public double get_angle(){
 		return functions.getValue();
 	}
 	public double get() {
-		return output;
+		double c = 0;
+		if ( has_const ){
+			c = constant;
+		}
+		return output + c;
 	}
 }

@@ -31,8 +31,9 @@ public class DriveTrain {
 	private double x_axis;
 	private double y_axis;
 	private static double speed_coef = 0.5;
-	private ImageTracker tracker;
+	public ImageTracker tracker;
 	private Robot robot;
+	public PID heading;
 	/**
 	 * Constructor for drive train. Only needs the driver's Controller.
 	 * @param drive_controller Controller that the driver uses
@@ -64,6 +65,13 @@ public class DriveTrain {
 		front_right.setInverted( true );
 		rear_right.setInverted( true );
 		// delta time Timer
+		AsyncLoop track_goal = new AsyncLoop( new function () {
+			public void fn(){
+				if( drive_controller.get_left_trigger() ){
+					x_axis = tracker.get_pid_vis();
+				}
+			}
+		});
 		
 		AsyncLoop drive_tracker = new AsyncLoop( new function() {
 			public void fn(){
@@ -90,23 +98,101 @@ public class DriveTrain {
 				myRobot.arcadeDrive( y_axis, x_axis, true );
 			}
 		});
+		heading = new PID( new signal(){
+	    	public double getValue() {
+	    	double a = gyro.getAngle();
+	    	a = Math.abs( a );
+	    	while ( a >= 360 ) {
+	    		a -= 360;
+	    	}
+	    	double b = Math.abs(a) % 360;
+	    	if ( a > 180 ) {
+	    		a = -1 * ( 180 - ( a - 180 ) );
+	    	}
+	    		return a;
+	    	}
+	    	} );
+	    	heading.set_pid( 0.01, 0.00000000001, 0.0000001 );
+	    	//drive_angle.set_pid( 0.01, 0.00000000001, 0.0000001 );
+	    	heading.set_setpoint( 0.0 );
+		
 		// Register Events
 		main_loop.on( drive_tracker );
 		main_loop.on( drive_loop );
+		main_loop.on( track_goal );
 	}
 	static double tolerate( double x, double tolerance ){
-		if ( x >= tolerance && x <= -tolerance ) {
+		if ( x >= tolerance || x <= -tolerance ) {
 			return x;
 		} else {
 			return 0;
 		}
 	}
-	
+	public void reset_encoders(){
+		right_drive_encoder.reset();
+		left_drive_encoder.reset();
+	}
+	/*
+	 * Returns the distance that the left side has traveled in feet.
+	 */
+	public double get_left_dist() {
+		return ( left_drive_encoder.get() / 1440.0) * (2 * Math.PI * 8);
+	}
+	/*
+	 * Returns the distance that the right side has traveled in feet.
+	 */
+	public double get_right_dist() {
+		return ( right_drive_encoder.get() / 1440.0) * (2 * Math.PI * 8);
+	}
 	double motor_compensate( double n ){
 		if ( n > 0.5 || n < -0.5 ){
 			n *= 0.5;
 		}
 		return n;
 		//return -Math.pow( ( robot.network_table.getNumber( "st_coef", 0.5 ) * n ), 2 ) + robot.network_table.getNumber( "st_bias", 0.5 );
+	}
+	/**
+	 * Work in progress autonomous interface with drive train.
+	 * @param double dist the distance that the robot will travel.
+	 * @return Event that will drive the robot strait for double dist feet.
+	 */
+	public Event drive_strait( double dist ) {
+		gyro.reset();
+		heading.set_setpoint( 0.0 );
+		PID drive_dist = new PID( new signal() {
+			public double getValue(){
+				return get_left_dist();
+			}
+		});
+		drive_dist.set_pid( 1, 0, 0 );
+		drive_dist.set_setpoint( dist );
+		return new Event( new attr(){
+			public boolean poll(){ return true; }
+			public void callback(){
+				x_axis = heading.get();
+				y_axis = drive_dist.get();
+				myRobot.arcadeDrive( y_axis, x_axis, true );
+			}
+			public boolean complete(){
+				return ( Math.abs(get_left_dist() - dist) <= 0.1 ); // 1/10th of a foot tolerance.
+			}
+		} );
+	}
+	/**
+	 * Work in progress will return an event which turns the robot to a given angle.
+	 */
+	public Event turn( double angle ) {
+		gyro.reset();
+		heading.set_setpoint( angle );
+		return new Event( new attr(){
+			public boolean poll(){ return true; }
+			public void callback(){ 
+				x_axis = heading.get();
+				myRobot.arcadeDrive( 0, x_axis, true );
+			}
+			public boolean complete(){
+				return ( Math.abs( heading.get_angle() - angle ) <= 5.0 ); //5 degree tolerance.
+			}
+		});
 	}
 }
