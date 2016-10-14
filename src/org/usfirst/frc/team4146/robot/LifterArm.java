@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.Servo;
 public class LifterArm {
 	Controller controller;
 	public static double out = 0.868;
-	public static double zero = 0.221;
+	public static double zero = 0.20;
 	private AnalogPotentiometer pot;
 	private Talon arm;
 	private Talon ext_arm;
@@ -29,7 +29,8 @@ public class LifterArm {
 		
 		AsyncLoop extend = new AsyncLoop( new function (){
 			public void fn(){
-				double ext = controller.get_right_y_axis();
+				double ext = DriveTrain.tolerate( -controller.get_right_y_axis(), 0.1 );
+				//System.out.println( "POT: " + pot.get() );
 				if ( ext > 0 ) {
 					arm_servo.set( servo_open );
 				} else {
@@ -38,7 +39,7 @@ public class LifterArm {
 				if ( pot.get() >= out && ext > 0 ) {
 					ext = 0;
 				}
-				if ( pot.get() >= zero && ext < 0 ) {
+				if ( pot.get() <= zero && ext < 0 ) {
 					ext = 0;
 				}
 				ext_arm.set( ext );

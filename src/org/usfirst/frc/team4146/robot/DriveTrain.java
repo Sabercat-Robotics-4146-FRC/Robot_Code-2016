@@ -7,7 +7,9 @@ import edu.wpi.first.wpilibj.Timer;
 // set angle test
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
+import org.usfirst.frc.team4146.robot.AsyncLoop;
 
+import java.lang.Math;
 /**
  * Drive Train class used for streamlined interface with the drivetrain.
  * @author GowanR
@@ -73,23 +75,27 @@ public class DriveTrain {
 			}
 		});
 		
-		AsyncLoop drive_tracker = new AsyncLoop( new function() {
-			public void fn(){
-				x_axis = tolerate( drive_controller.get_right_x_axis() * speed_coef, 0.1 );
-				y_axis = tolerate( drive_controller.get_left_y_axis() * speed_coef, 0.1 );
-				
-				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
-				if ( drive_controller.get_left_trigger() ){
-					//double n = tracker.get_x_axis();
-					//x_axis = motor_compensate( n );
-					x_axis = robot.drive_angle.get();
-					//System.out.println( x_axis );
-				}
-			}
-		});
-		
 		AsyncLoop drive_loop = new AsyncLoop( new function(){
 			public void fn(){
+				x_axis = tolerate( drive_controller.get_right_x_axis() * speed_coef, 0.1 );
+				if ( x_axis < 0 ) {
+					x_axis -= 0.37;
+				} else if ( x_axis > 0 ) { 
+					x_axis += 0.37;
+				}
+				y_axis = tolerate( drive_controller.get_left_y_axis() * speed_coef, 0.1 );
+				if ( y_axis < 0 ) {
+					y_axis -= 0.37;
+				} else if ( y_axis > 0 ) { 
+					y_axis += 0.37;
+				}
+				//System.out.println( x_axis );
+				robot.network_table.putNumber( "imager", tracker.get_x_axis() );
+				//System.out.println( robot.drive_angle.get() );
+				if ( drive_controller.get_left_trigger() ){
+					double n = tracker.get_x_axis();
+					x_axis = motor_compensate( n );
+				}
 				if ( drive_controller.get_left_stick_press() ){
 					speed_coef = 1.0;
 				} else {
@@ -117,7 +123,6 @@ public class DriveTrain {
 	    	heading.set_setpoint( 0.0 );
 		
 		// Register Events
-		main_loop.on( drive_tracker );
 		main_loop.on( drive_loop );
 		main_loop.on( track_goal );
 	}
@@ -142,12 +147,28 @@ public class DriveTrain {
 	 * Returns the distance that the right side has traveled in feet.
 	 */
 	public double get_right_dist() {
-		return ( right_drive_encoder.get() / 1440.0) * (2 * Math.PI * 8);
+		return ( right_drive_encoder.get() / 65.0) * (2 * Math.PI * 8);
 	}
+//	double motor_compensate( double n ){
+//		if ( n > 0.5 || n < -0.5 ){
+//			n *= 0.5;
+//		}
+//		return n;
+//		//return -Math.pow( ( robot.network_table.getNumber( "st_coef", 0.5 ) * n ), 2 ) + robot.network_table.getNumber( "st_bias", 0.5 );
+//	}
 	double motor_compensate( double n ){
-		if ( n > 0.5 || n < -0.5 ){
-			n *= 0.5;
+		n = ((n/(1+Math.abs(n)))*0.5);
+		if( n < 0 ){
+			n -= 0.20;
 		}
+		if( n > 0 ){
+			n += 0.20;
+		}
+		if( n <= 0.35 && n >= -0.35 ){
+			n *= 1.25;
+		}
+		
+		System.out.println(n);
 		return n;
 		//return -Math.pow( ( robot.network_table.getNumber( "st_coef", 0.5 ) * n ), 2 ) + robot.network_table.getNumber( "st_bias", 0.5 );
 	}

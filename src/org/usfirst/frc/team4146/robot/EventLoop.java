@@ -11,6 +11,7 @@ import java.util.ArrayList;
  * @version 9/4/2016 
  */
 class EventLoop implements Runnable {
+	private Thread thr;
 	private ArrayList<Event> stack;
 	private ArrayList<Event> completeStack;
 	private ArrayList<Event> persistentStack;
@@ -20,6 +21,11 @@ class EventLoop implements Runnable {
 		stack = new ArrayList<Event>();
 		completeStack = new ArrayList<Event>();
 		persistentStack = new ArrayList<Event>();
+	}
+	public EventLoop( ArrayList<Event> p ) {
+		stack = new ArrayList<Event>();
+		completeStack = new ArrayList<Event>();
+		persistentStack = p;
 	}
 	/**
 	 * Adds Event e to the persistent stack so that the event will be polled always. Never removed or cleared.

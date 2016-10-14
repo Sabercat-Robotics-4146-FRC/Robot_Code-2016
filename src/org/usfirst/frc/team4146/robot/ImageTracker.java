@@ -7,6 +7,7 @@ public class ImageTracker {
 	private double dx;
 	private double w;
 	public PID vis_pid;
+	public static double center = 380.0;
 	
 	public ImageTracker( NetworkTable dash ){
 		dashboard = dash;
@@ -16,7 +17,8 @@ public class ImageTracker {
 			}
 		});
 		vis_pid.set_setpoint( 0 );
-		vis_pid.set_pid( 1, 0, 0 );
+		vis_pid.set_pid( 0.5, 0, 0 );
+		vis_pid.add_const( 0.35 );
 	}
 	private double get_x_center() {
 		x = dashboard.getNumber( "vis_x", -1.0 );
@@ -28,6 +30,7 @@ public class ImageTracker {
 	}
 	public double get_x_axis(){
 		dx = get_x_center();
-		return (dx-320.0)/320.0;
+		return (dx-center)/320.0;
 	}
+	
 }

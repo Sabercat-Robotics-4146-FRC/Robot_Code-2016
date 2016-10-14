@@ -53,9 +53,18 @@ public class Robot extends SampleRobot{
         	public void callback(){}
         	public boolean complete(){ return true; }
         }));
+        Event clear_stack = drive_controller.bind( Controller.Y_button );
+        Event cls  = new Event( new attr() {
+        	public boolean poll(){ return true; }
+        	public void callback() {  }
+        	public boolean complete(){ return true; }
+        });
+        clear_stack.then( cls );
+        
+        main_event_loop.on( clear_stack );
         main_event_loop.on( drive_start );
         main_event_loop.on( arm_start );
-       // lifter_arm = new LifterArm( arm_controller, main_event_loop );
+        lifter_arm = new LifterArm( arm_controller, main_event_loop );
         drive = new DriveTrain( drive_controller, main_event_loop, this );
         shooter = new Shooter( drive_controller, main_event_loop );
     }
@@ -105,7 +114,6 @@ public class Robot extends SampleRobot{
     			while ( a >= 360 ) {
     				a -= 360;
     			}
-    			double b = Math.abs(a) % 360;
     			if ( a > 180 ) {
     				a = -1 * ( 180 - ( a - 180 ) );
     			}
@@ -116,11 +124,12 @@ public class Robot extends SampleRobot{
     	//drive_angle.set_pid( 0.01, 0.00000000001, 0.0000001 );
     	drive_angle.set_setpoint( 0.0 );
     	gyro = new AHRS( SPI.Port.kMXP );
-    	(new Thread( main_event_loop )).start();
+    	new Thread( main_event_loop ).start();
     	long startTime;    
     	double dt = 1e-3;
         while ( isOperatorControl() && isEnabled() ) {
-        	startTime = System.nanoTime();   
+        	startTime = System.nanoTime();  
+        	drive.tracker.vis_pid.update( dt );
         	drive_angle.update( dt );
             Timer.delay(0.005);		// wait for a motor update time
             dt = (double)( System.nanoTime() - startTime ) / 1e9;
