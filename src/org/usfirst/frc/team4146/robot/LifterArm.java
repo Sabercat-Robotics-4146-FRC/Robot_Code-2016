@@ -7,8 +7,8 @@ public class LifterArm {
 	Controller controller;
 	public static double out = 0.868;
 	public static double zero = 0.20;
-	private AnalogPotentiometer pot;
-	private Talon arm;
+	public AnalogPotentiometer pot;
+	public Talon arm;
 	private Talon ext_arm;
 	private Servo arm_servo;
 	private static double servo_open = 0.1;

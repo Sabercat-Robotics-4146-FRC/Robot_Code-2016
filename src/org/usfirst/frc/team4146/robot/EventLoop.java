@@ -15,6 +15,7 @@ class EventLoop implements Runnable {
 	private ArrayList<Event> stack;
 	private ArrayList<Event> completeStack;
 	private ArrayList<Event> persistentStack;
+	private boolean clear_stack;
 	public double dt;
 	// Just a good old constructor.. Nothing to see here.
 	public EventLoop() {
@@ -48,6 +49,9 @@ class EventLoop implements Runnable {
 	public double get_dt(){
 		return dt;
 	}
+	public void clear(){
+		clear_stack = true;
+	}
 	@Override
 	public void run(){
 		long startTime;
@@ -78,6 +82,11 @@ class EventLoop implements Runnable {
 					}
 					completeStack.remove( i );
 				}
+			}
+			if ( clear_stack ) {
+				stack.clear();
+				completeStack.clear();
+				clear_stack = false;
 			}
 			// Get the time it takes to complete the event loop. Nanosecond to second conversion.
 			dt = (double)( System.nanoTime() - startTime ) / 1e9;

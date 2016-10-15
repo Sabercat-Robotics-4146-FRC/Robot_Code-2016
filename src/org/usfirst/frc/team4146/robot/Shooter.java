@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.Encoder;
  * @version 8/21/2016
  */
 public class Shooter {
-	private Talon shooter_arm_motor;
+	public Talon shooter_arm_motor;
 	private Talon outer_flywheel_motor;
 	private Talon inner_flywheel_motor;
 	private DigitalInput arm_up;
@@ -40,6 +40,9 @@ public class Shooter {
 	Event reverse_wheel;
 	Event light_reverse_wheel;
 	Event store_wheel;
+	
+	// ## EXPERIMENTAL ## //
+	public Event reset;
 	
 	boolean intaking;
 	/**
@@ -97,10 +100,8 @@ public class Shooter {
 			}
 			public boolean poll(){ flywheel_encoder.reset(); startTime = System.nanoTime(); shooter_time = 0; return true; }
 			public boolean complete(){
-				System.out.println( flywheel_encoder.getRate() );
 				shooter_time = (double)( System.nanoTime() - startTime ) / 1e9;
 				if ( shooter_time >= 3.0 ) {
-					flywheel_encoder.reset();
 					shooter_arm_motor.set( 0.0 );
 					return true;
 				} else {
@@ -165,6 +166,19 @@ public class Shooter {
 				System.out.println( "Encoder: " + flywheel_encoder.get() );
 			}
 		});
+		/* ## EXPERIMENTAL ## */
+		reset = new Event( new attr() {
+			public boolean poll(){ return true; }
+			public void callback(){ reverse_flywheel(); shooter_arm_motor.set( 1.0 ); }
+			public boolean complete(){ return arm_up.get(); }
+		});
+		Event post_reset = new Event ( new attr() {
+			public boolean poll(){ return true; }
+			public void callback(){ stop_flywheel(); shooter_arm_motor.set( 0.0 ); }
+			public boolean complete(){ return true; }
+		});
+		reset.then(post_reset);
+		
 		/* Event Chains */
 		shoot
 		.then( light_reverse_wheel )

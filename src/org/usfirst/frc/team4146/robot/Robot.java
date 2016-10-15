@@ -6,6 +6,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SampleRobot;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 //import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -56,7 +57,7 @@ public class Robot extends SampleRobot{
         Event clear_stack = drive_controller.bind( Controller.Y_button );
         Event cls  = new Event( new attr() {
         	public boolean poll(){ return true; }
-        	public void callback() {  }
+        	public void callback() { main_event_loop.clear(); main_event_loop.once( shooter.reset ); }
         	public boolean complete(){ return true; }
         });
         clear_stack.then( cls );
@@ -78,18 +79,61 @@ public class Robot extends SampleRobot{
         SmartDashboard.putData("Auto modes", chooser);*/
     }
 
+    public static double dist_enc( double d ){
+    	return d * (65/(16*Math.PI));
+    }
 	/**
 	 * Autonomous mode. This will run when autonomous mode is initialized.
 	 * ( Not implemented yet. )
 	 */
     public void autonomous() {
-    	Event drive_forward = drive.drive_strait( 5.0 );
+    	long start_time = System.nanoTime();
+    	while ( lifter_arm.pot.get() > 4.35 ) {
+    		lifter_arm.arm.set( -0.15 );
+    	}
+    	lifter_arm.arm.set( 0.0 );
+    	while ( (double)((System.nanoTime() - start_time)/1e9) < 3.0 ){
+    		drive.myRobot.arcadeDrive( 1.0, 0.0, true );
+    	}
+    	start_time = System.nanoTime();
+    	while ( (double)((System.nanoTime() - start_time)/1e9) < 1.0 ){
+    		drive.myRobot.arcadeDrive( 0.0, 0.4, true );
+    	}
+    	start_time = System.nanoTime();
+    	while ( (double)((System.nanoTime() - start_time)/1e9) < 3.0 ){
+    		double x = DriveTrain.motor_compensate( drive.tracker.get_x_axis() );
+    		drive.myRobot.arcadeDrive( 0.0, x, true );
+    	}
+    	start_time = System.nanoTime();
+    	while ( (double)((System.nanoTime() - start_time)/1e9) < 1.0 ){
+    		shooter.reverse_flywheel( 0.4 );
+    		shooter.shooter_arm_motor.set( 1.0 );
+    	}
+    	start_time = System.nanoTime();
+    	while ( (double)((System.nanoTime() - start_time)/1e9) < 2.0 ){
+    		shooter.spin_flywheel( 1.0 );
+    		shooter.shooter_arm_motor.set( 0.1 );
+    	}
+    	start_time = System.nanoTime();
+    	while ( (double)((System.nanoTime() - start_time)/1e9) < 2.0 ){
+    		shooter.spin_flywheel( 1.0 );
+    		shooter.shooter_arm_motor.set( -1.0 );
+    	}
+    	shooter.spin_flywheel( 0.0 );
+		shooter.shooter_arm_motor.set( 0.0 );
+    	/*long timer;
+    	timer = System.nanoTime();
+    	while ( (double)(System.nanoTime() - timer /1e9) < 3.0 ){
+    		drive.myRobot.arcadeDrive( 0.0, 1.0 );
+    	}
+    	drive.myRobot.arcadeDrive( 0.0, 0.0 );*/
+    	/*Event drive_forward = drive.drive_strait( 5.0 );
     	Event turn_left = drive.turn( 90.0 );
     	
     	drive_forward.then( turn_left );
     	
-    	main_event_loop.on( drive_forward );
-    	
+    	main_event_loop.once( drive_forward );
+    	*/
     	/*String autoSelected = (String) chooser.getSelected();
 		System.out.println("Auto selected: " + autoSelected);
     	
@@ -124,7 +168,7 @@ public class Robot extends SampleRobot{
     	//drive_angle.set_pid( 0.01, 0.00000000001, 0.0000001 );
     	drive_angle.set_setpoint( 0.0 );
     	gyro = new AHRS( SPI.Port.kMXP );
-    	new Thread( main_event_loop ).start();
+    	(new Thread( main_event_loop )).start();
     	long startTime;    
     	double dt = 1e-3;
         while ( isOperatorControl() && isEnabled() ) {

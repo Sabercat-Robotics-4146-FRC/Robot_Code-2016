@@ -21,13 +21,13 @@ public class DriveTrain {
 	/*
 	 *	Allocate Talons for all four drive motors. 
 	 */
-	private Talon front_left;
-	private Talon rear_left;
-	private Talon front_right;
-	private Talon rear_right;
+	public Talon front_left;
+	public Talon rear_left;
+	public Talon front_right;
+	public Talon rear_right;
 	public RobotDrive myRobot;
-	private Encoder right_drive_encoder;
-	private Encoder left_drive_encoder;
+	public Encoder right_drive_encoder;
+	public Encoder left_drive_encoder;
 	private Controller drive_controller;
 	// Arcade drive data
 	private double x_axis;
@@ -156,7 +156,7 @@ public class DriveTrain {
 //		return n;
 //		//return -Math.pow( ( robot.network_table.getNumber( "st_coef", 0.5 ) * n ), 2 ) + robot.network_table.getNumber( "st_bias", 0.5 );
 //	}
-	double motor_compensate( double n ){
+	public static double motor_compensate( double n ){
 		n = ((n/(1+Math.abs(n)))*0.5);
 		if( n < 0 ){
 			n -= 0.20;
