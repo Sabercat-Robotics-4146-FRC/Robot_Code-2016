@@ -148,13 +148,13 @@ For syntactic glory, I tend to just construct an `Event`'s `attr` in the `Event`
 Event e = new Event( new attr() {
 	public boolean poll(){
     	// Check to see if the event is happening.
-    	return /*weather the event is happening*/ false;
+    	return /*whether the event is happening*/ false;
 	} 
     public void callback(){
     	// Define what should happen when the event is triggered.
     }
     public boolean complete(){
-    	// Check weather the event's completion criteria have been met.
+    	// Check whether the event's completion criteria have been met.
     	return false;
     }
 });
