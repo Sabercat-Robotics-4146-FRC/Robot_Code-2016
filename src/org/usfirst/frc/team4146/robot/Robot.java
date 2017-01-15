@@ -55,9 +55,7 @@ public class Robot extends SampleRobot{
 	 */
     public void autonomous() {
     	
-    	Autonomous.high_goal_main();
-    		
-    	}
+    	
     	
     	/*String autoSelected = (String) chooser.getSelected();
 		System.out.println("Auto selected: " + autoSelected);
