@@ -11,23 +11,23 @@ import edu.wpi.first.wpilibj.Joystick;
 public class Controller {
 	Joystick joy;
 	// Define buttons
-	public static final int X_button          = 1;
-	public static final int A_button          = 2;
-	public static final int B_button          = 3;
-	public static final int Y_button          = 4;
-	public static final int left_bumper       = 5;
-	public static final int right_bumper      = 6;
-	public static final int left_trigger      = 7;
-	public static final int right_trigger     = 8;
-	public static final int back_button       = 9;
-	public static final int start_button      = 10;
-	public static final int left_stick_press  = 11;
-	public static final int right_stick_press = 12;
-	// Define axes (pl. axis)
-	private static final int left_x_axis  = 0;
-	private static final int left_y_axis  = 1;
-	private static final int right_x_axis = 2;
-	private static final int right_y_axis = 3;
+	public static final int A_button          = 1;
+    public static final int B_button          = 2;
+    public static final int X_button          = 3;
+    public static final int Y_button          = 4;
+    public static final int left_bumper       = 5;
+    public static final int right_bumper      = 6;
+    public static final int back_button       = 7;
+    public static final int start_button      = 8;
+    public static final int left_stick_press  = 9;
+    public static final int right_stick_press = 10;
+    // Axes
+    private static final int left_x_axis  = 0;
+    private static final int left_y_axis  = 1;
+    public static final int left_trigger  = 2;
+    public static final int right_trigger = 3;
+    private static final int right_x_axis = 4;
+    private static final int right_y_axis = 5;
 	/**
 	 * Constructor takes the controller number (0 or 1 with two controllers)
 	 * 
@@ -69,14 +69,14 @@ public class Controller {
 	 * @return boolean weather left bumper is pressed
 	 */
 	public boolean get_left_bumper( ){
-		return joy.getRawButton( left_bumper );
+		return joy.getRawAxis( left_bumper ) > 0;
 	}
 	/**
 	 * Gets weather the right bumper is being pushed on the controller.
 	 * @return boolean weather right bumper button is pressed
 	 */
 	public boolean get_right_bumper( ){
-		return joy.getRawButton( right_bumper );
+		return joy.getRawAxis( right_bumper ) > 0;
 	}
 	/**
 	 * Gets weather the left trigger is being pushed on the controller.
